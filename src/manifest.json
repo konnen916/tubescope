@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "TubeScope",
+  "version": "0.1.0",
+  "description": "Free, open-source YouTube channel analytics exporter.",
+  "browser_specific_settings": { "gecko": { "id": "tubescope@local" } },
+  "permissions": ["storage"],
+  "host_permissions": ["*://*.googleapis.com/*"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    { "matches": ["*://*.youtube.com/*"], "js": ["content.js"], "run_at": "document_idle" }
+  ],
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "action": { "default_title": "TubeScope" }
+}
