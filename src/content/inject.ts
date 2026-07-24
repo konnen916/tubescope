@@ -1,15 +1,11 @@
 import { extractChannelIdFromHtml } from '../lib/channel-id';
 import { toCSV, toJSON, suggestFilename } from '../lib/exporter';
+import { esc } from '../lib/html';
 import type { ChannelDataset } from '../types';
 
 const BTN_ID = 'tubescope-export-btn';
 let dataset: ChannelDataset | null = null;
 let activePort: ReturnType<typeof browser.runtime.connect> | null = null;
-
-const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-function esc(s: unknown): string {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
-}
 
 function liveChannelId(): string | null {
   // <head> og:url / canonical are updated by YouTube on SPA navigation, unlike the
@@ -102,13 +98,15 @@ function renderResult() {
     <b>${esc(dataset.channel.title)}</b><br>
     ${s.videoCount} videos · ${s.totalViews.toLocaleString()} views<br>
     median ${s.medianViews.toLocaleString()} · best day ${esc(s.bestDayOfWeek ?? '–')}<br>
-    <button id="csv">Export CSV</button><button id="json">Export JSON</button>
+    <button id="report">📊 Open full report</button><button id="csv">Export CSV</button><button id="json">Export JSON</button>
     <table><tr><th>Top videos</th><th>Views</th></tr>${top}</table>`);
   const sr = shadow();
   sr.querySelector('#csv')?.addEventListener('click', () =>
     download(toCSV(dataset!), suggestFilename(dataset!, 'csv'), 'text/csv'));
   sr.querySelector('#json')?.addEventListener('click', () =>
     download(toJSON(dataset!), suggestFilename(dataset!, 'json'), 'application/json'));
+  sr.querySelector('#report')?.addEventListener('click', () =>
+    browser.runtime.sendMessage({ cmd: 'report', channelId: dataset!.channel.id }));
 }
 
 function startExport() {

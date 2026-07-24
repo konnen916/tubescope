@@ -1,10 +1,32 @@
 import { collectChannelDataset } from '../lib/collect';
 import { makeFetchJson } from '../lib/youtube-api';
+import { stripThumbnails } from '../lib/report-metrics';
+import type { ChannelDataset } from '../types';
 
 const KEY_STORAGE = 'ytApiKey';
 
+async function cacheForReport(channelId: string, dataset: ChannelDataset): Promise<void> {
+  const key = 'report:' + channelId;
+  const session = (browser.storage as any).session;
+  try {
+    await session.set({ [key]: dataset });
+  } catch {
+    try {
+      await session.set({ [key]: stripThumbnails(dataset) });
+    } catch {
+      // give up silently — the report page shows a missing-data fallback
+    }
+  }
+}
+
 browser.action.onClicked.addListener(() => {
   browser.runtime.openOptionsPage();
+});
+
+browser.runtime.onMessage.addListener((msg: any) => {
+  if (msg?.cmd === 'report' && typeof msg.channelId === 'string') {
+    browser.tabs.create({ url: browser.runtime.getURL('report.html#' + msg.channelId) });
+  }
 });
 
 browser.runtime.onConnect.addListener((port) => {
@@ -32,6 +54,7 @@ browser.runtime.onConnect.addListener((port) => {
         msg.channelId,
         (fetched, total) => safePost({ event: 'progress', fetched, total }),
       );
+      await cacheForReport(msg.channelId, dataset);
       safePost({ event: 'result', dataset });
     } catch (e: any) {
       safePost({ event: 'error', message: e?.message ?? 'Unknown error' });

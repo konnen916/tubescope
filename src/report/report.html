@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TubeScope — Channel Report</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 14px system-ui, sans-serif; margin: 0 auto; padding: 24px; max-width: 1000px; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .muted { opacity: .7; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+  .card { border: 1px solid rgba(128,128,128,.3); border-radius: 8px; padding: 10px 12px; }
+  .card b { display: block; font-size: 18px; }
+  section { margin: 24px 0; }
+  h2 { font-size: 16px; border-bottom: 1px solid rgba(128,128,128,.3); padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid rgba(128,128,128,.2); font-size: 12px; }
+  th[data-k] { cursor: pointer; user-select: none; }
+  svg { color: #3b82f6; }
+  header.top { display: flex; gap: 14px; align-items: center; }
+  header.top img { width: 72px; height: 72px; border-radius: 50%; }
+  button { padding: 6px 12px; border: 1px solid rgba(128,128,128,.4); border-radius: 6px; background: transparent; cursor: pointer; color: inherit; margin-right: 6px; }
+  input#filter { padding: 6px 8px; width: 240px; margin: 8px 0; }
+  #empty { padding: 60px 20px; text-align: center; }
+</style>
+<div id="app"><div id="empty" class="muted">Loading…</div></div>
+<script src="report.js"></script>

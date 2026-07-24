@@ -9,6 +9,7 @@ const options = {
     background: 'src/background/index.ts',
     content: 'src/content/inject.ts',
     options: 'src/options/options.ts',
+    report: 'src/report/report.ts',
   },
   bundle: true,
   format: 'iife',
@@ -20,6 +21,7 @@ const options = {
 function copyStatic() {
   cpSync('src/manifest.json', 'dist/manifest.json');
   cpSync('src/options/options.html', 'dist/options.html');
+  cpSync('src/report/report.html', 'dist/report.html');
 }
 
 if (watch) {

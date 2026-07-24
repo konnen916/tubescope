@@ -1,0 +1,40 @@
+import { it, expect } from 'vitest';
+import { uploadTimelineSvg, viewsHistogramSvg, outlierBarsSvg } from '../src/lib/charts';
+import type { VideoRow } from '../src/types';
+import type { Bucket } from '../src/lib/report-metrics';
+
+function row(over: Partial<VideoRow>): VideoRow {
+  return {
+    videoId: 'v', title: 't', publishedAt: '2026-01-01T00:00:00Z', viewCount: 100,
+    likeCount: 0, commentCount: 0, durationSeconds: 120, definition: 'hd', caption: false,
+    tags: [], categoryId: '', thumbnail: '', ageDays: 1, viewsPerDay: 0,
+    engagementRate: 0, likeRatio: 0, outlierScore: 1, ...over,
+  };
+}
+
+it('uploadTimelineSvg draws one mark per video and is an svg', () => {
+  const svg = uploadTimelineSvg([row({}), row({ publishedAt: '2026-02-01T00:00:00Z' })]);
+  expect(svg.startsWith('<svg')).toBe(true);
+  expect((svg.match(/<circle/g) || []).length).toBe(2);
+});
+
+it('viewsHistogramSvg draws one bar per bucket', () => {
+  const buckets: Bucket[] = [
+    { label: '0–10', min: 0, max: 10, count: 3 },
+    { label: '10–100', min: 10, max: 100, count: 1 },
+  ];
+  const svg = viewsHistogramSvg(buckets);
+  expect((svg.match(/<rect/g) || []).length).toBe(2);
+});
+
+it('outlierBarsSvg respects topN and ESCAPES titles (XSS)', () => {
+  const rows = [
+    row({ title: '<script>alert(1)</script>', outlierScore: 9 }),
+    row({ outlierScore: 5 }),
+    row({ outlierScore: 1 }),
+  ];
+  const svg = outlierBarsSvg(rows, 2);
+  expect((svg.match(/<rect/g) || []).length).toBe(2); // topN=2
+  expect(svg).not.toContain('<script>alert(1)</script>');
+  expect(svg).toContain('&lt;script&gt;');
+});
