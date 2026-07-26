@@ -52,25 +52,54 @@ async function setWatchlist(list: WatchEntry[]): Promise<void> {
   await browser.storage.local.set({ [WATCH_KEY]: list });
 }
 
-function pinBtn(el: HTMLButtonElement, right: string, bg: string) {
+const CTRL_ID = 'tubescope-controls';
+const FONT = "500 13px 'Roboto','Segoe UI',system-ui,sans-serif";
+const CHIP_BG = 'rgba(18,18,18,0.94)';
+const CHIP_BG_HOVER = 'rgba(45,45,45,0.96)';
+const BRAND_DOT =
+  '<span style="width:7px;height:7px;border-radius:50%;background:#ff0033;display:inline-block;flex:none"></span>';
+
+function chip(el: HTMLButtonElement) {
   Object.assign(el.style, {
-    position: 'fixed', bottom: '20px', right, zIndex: '99999',
-    padding: '10px 14px', background: bg, color: '#fff', border: 'none',
-    borderRadius: '8px', cursor: 'pointer', font: '600 14px sans-serif',
+    background: CHIP_BG, color: '#f1f1f1', border: '1px solid rgba(255,255,255,0.16)',
+    borderRadius: '18px', padding: '7px 14px', font: FONT, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: '7px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)',
+    transition: 'background .15s, border-color .15s',
   });
+  el.addEventListener('mouseenter', () => { el.style.background = CHIP_BG_HOVER; });
+  el.addEventListener('mouseleave', () => { el.style.background = CHIP_BG; });
+}
+
+function controlsEl(): HTMLElement {
+  let c = document.getElementById(CTRL_ID);
+  if (!c) {
+    c = document.createElement('div');
+    c.id = CTRL_ID;
+    Object.assign(c.style, {
+      position: 'fixed', bottom: '16px', right: '16px', zIndex: '99999',
+      display: 'flex', gap: '8px', alignItems: 'center',
+    });
+    document.body.appendChild(c);
+  }
+  return c;
 }
 
 async function refreshSaveLabel(btn: HTMLButtonElement) {
   const id = currentChannelId();
   const list = await getWatchlist();
-  btn.textContent = id && isWatched(list, id) ? '★ Saved' : '☆ Save';
+  const saved = !!id && isWatched(list, id);
+  btn.textContent = saved ? 'Saved' : 'Save';
+  btn.style.borderColor = saved ? 'rgba(255,0,51,0.55)' : 'rgba(255,255,255,0.16)';
+  btn.style.color = saved ? '#ff5c78' : '#f1f1f1';
 }
 
 function makeExportButton(): HTMLButtonElement {
   const b = document.createElement('button');
   b.id = BTN_ID;
-  b.textContent = '⬇ Export analytics';
-  pinBtn(b, '20px', '#c00');
+  chip(b);
+  b.innerHTML = BRAND_DOT + 'Export';
+  b.title = "Export this channel's analytics (CSV, JSON, full report)";
   b.addEventListener('click', startExport);
   return b;
 }
@@ -78,7 +107,9 @@ function makeExportButton(): HTMLButtonElement {
 function makeSaveButton(): HTMLButtonElement {
   const b = document.createElement('button');
   b.id = SAVE_ID;
-  pinBtn(b, '182px', '#333');
+  chip(b);
+  b.textContent = 'Save';
+  b.title = 'Save this channel to your watchlist';
   b.addEventListener('click', async () => {
     const id = currentChannelId();
     if (!id) return;
@@ -95,12 +126,9 @@ function makeSaveButton(): HTMLButtonElement {
 function makePill(): HTMLButtonElement {
   const b = document.createElement('button');
   b.id = PILL_ID;
-  b.textContent = '📊 Stats';
-  Object.assign(b.style, {
-    position: 'fixed', bottom: '20px', left: '20px', zIndex: '99999',
-    padding: '8px 14px', background: '#c00', color: '#fff', border: 'none',
-    borderRadius: '20px', cursor: 'pointer', font: '600 13px sans-serif',
-  });
+  chip(b);
+  b.innerHTML = BRAND_DOT + 'Stats';
+  b.title = 'Quick stats for this video';
   b.addEventListener('click', loadVideoStats);
   return b;
 }
@@ -108,27 +136,27 @@ function makePill(): HTMLButtonElement {
 function syncUi() {
   const onChannel = isChannelPage();
   const videoId = currentVideoId();
+  const showWatch = !!videoId && !onChannel;
 
-  const existingExport = document.getElementById(BTN_ID);
-  const existingSave = document.getElementById(SAVE_ID) as HTMLButtonElement | null;
-  if (onChannel) {
-    if (!existingExport) document.body.appendChild(makeExportButton());
-    let sb = existingSave;
-    if (!sb) {
-      sb = makeSaveButton();
-      document.body.appendChild(sb);
-    }
-    void refreshSaveLabel(sb).catch(() => {});
-  } else {
-    existingExport?.remove();
-    existingSave?.remove();
+  if (!onChannel && !showWatch) {
+    document.getElementById(CTRL_ID)?.remove();
+    return;
   }
+  const c = controlsEl();
+  const pill = document.getElementById(PILL_ID) as HTMLButtonElement | null;
+  const exp = document.getElementById(BTN_ID) as HTMLButtonElement | null;
+  const save = document.getElementById(SAVE_ID) as HTMLButtonElement | null;
 
-  const existingPill = document.getElementById(PILL_ID);
-  if (videoId) {
-    if (!existingPill) document.body.appendChild(makePill());
+  if (onChannel) {
+    pill?.remove();
+    if (!save) c.appendChild(makeSaveButton());
+    if (!exp) c.appendChild(makeExportButton());
+    const sb = document.getElementById(SAVE_ID) as HTMLButtonElement | null;
+    if (sb) void refreshSaveLabel(sb).catch(() => {});
   } else {
-    existingPill?.remove();
+    save?.remove();
+    exp?.remove();
+    if (!pill) c.appendChild(makePill());
   }
 }
 
@@ -152,10 +180,15 @@ function closePanel() {
 function render(inner: string) {
   const sr = shadow();
   sr.innerHTML = `<style>
-    .box{position:fixed;bottom:70px;right:20px;width:340px;max-height:70vh;overflow:auto;background:#fff;color:#111;border:1px solid #ccc;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.2);padding:14px;font:13px sans-serif;z-index:99999}
-    button{cursor:pointer;margin:6px 6px 0 0;padding:6px 10px;border:none;border-radius:6px;background:#c00;color:#fff}
-    table{width:100%;border-collapse:collapse;margin-top:8px}td,th{border-bottom:1px solid #eee;padding:3px;text-align:left;font-size:11px}
-    .close{position:absolute;top:8px;right:10px;background:transparent;color:#888;font-size:16px;padding:0}
+    .box{position:fixed;bottom:64px;right:16px;width:330px;max-height:70vh;overflow:auto;background:rgba(18,18,18,0.97);color:#f1f1f1;border:1px solid rgba(255,255,255,0.16);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,0.55);padding:16px 16px 18px;font:13px/1.5 'Roboto','Segoe UI',system-ui,sans-serif;z-index:99999;backdrop-filter:blur(6px)}
+    .box b{font-weight:600}
+    .box button{cursor:pointer;margin:12px 6px 0 0;padding:7px 12px;border:1px solid rgba(255,255,255,0.16);border-radius:16px;background:rgba(45,45,45,0.9);color:#f1f1f1;font:500 12px 'Roboto',system-ui,sans-serif}
+    .box button:hover{background:rgba(70,70,70,0.95)}
+    .box #report{border-color:rgba(255,0,51,0.5)}
+    .box table{width:100%;border-collapse:collapse;margin-top:10px}
+    .box td,.box th{border-bottom:1px solid rgba(255,255,255,0.1);padding:4px 3px;text-align:left;font-size:11px}
+    .box .close{position:absolute;top:10px;right:12px;background:transparent;border:none;color:#8a8a8a;font-size:16px;padding:0;margin:0}
+    .box .close:hover{color:#fff}
   </style><div class="box">${inner}</div>`;
   sr.querySelector('.close')?.addEventListener('click', closePanel);
 }
@@ -210,7 +243,7 @@ function renderResult() {
     <b>${esc(dataset.channel.title)}</b><br>
     ${s.videoCount} videos · ${s.totalViews.toLocaleString()} views<br>
     median ${s.medianViews.toLocaleString()} · best day ${esc(s.bestDayOfWeek ?? '-')}<br>
-    <button id="report">📊 Open full report</button><button id="csv">Export CSV</button><button id="json">Export JSON</button>
+    <button id="report">Open report</button><button id="csv">Export CSV</button><button id="json">Export JSON</button>
     <table><tr><th>Top videos</th><th>Views</th></tr>${top}</table>`);
   const sr = shadow();
   sr.querySelector('#csv')?.addEventListener('click', () =>
