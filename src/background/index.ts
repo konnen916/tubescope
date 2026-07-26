@@ -14,7 +14,7 @@ async function cacheForReport(channelId: string, dataset: ChannelDataset): Promi
     try {
       await session.set({ [key]: stripThumbnails(dataset) });
     } catch {
-      // give up silently — the report page shows a missing-data fallback
+      // give up silently; the report page shows a missing-data fallback
     }
   }
 }
@@ -36,7 +36,7 @@ browser.runtime.onConnect.addListener((port) => {
     try {
       port.postMessage(msg);
     } catch {
-      // port disconnected (tab closed / add-on reloaded) — nothing to deliver to
+      // port disconnected (tab closed / add-on reloaded); nothing to deliver to
     }
   };
 

@@ -63,7 +63,7 @@ export function outlierBarsSvg(rows: VideoRow[], topN = 12): string {
       const bx = PAD + i * bw;
       const by = H - PAD - bh;
       const fill = r.outlierScore >= 2 ? '#e00' : 'currentColor';
-      return `<rect x="${(bx + 2).toFixed(1)}" y="${by.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="0.8"><title>${esc(r.title)} — ${r.outlierScore.toFixed(1)}×</title></rect>`;
+      return `<rect x="${(bx + 2).toFixed(1)}" y="${by.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="0.8"><title>${esc(r.title)}: ${r.outlierScore.toFixed(1)}×</title></rect>`;
     })
     .join('');
   return frame(`<title>Outlier videos (views ÷ median)</title>${axes()}${bars}`);
@@ -88,7 +88,7 @@ export function heatmapSvg(grid: number[][]): string {
       const x = labelW + h * cellW;
       const y = PAD + d * cellH;
       parts.push(
-        `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cellW.toFixed(1)}" height="${cellH.toFixed(1)}" fill="currentColor" opacity="${op.toFixed(3)}"><title>${esc(DAYS_SHORT[d] ?? String(d))} ${h}:00 UTC — ${Math.round(v).toLocaleString()} avg views</title></rect>`,
+        `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cellW.toFixed(1)}" height="${cellH.toFixed(1)}" fill="currentColor" opacity="${op.toFixed(3)}"><title>${esc(DAYS_SHORT[d] ?? String(d))} ${h}:00 UTC, ${Math.round(v).toLocaleString()} avg views</title></rect>`,
       );
     }
     parts.push(

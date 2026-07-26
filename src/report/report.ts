@@ -156,7 +156,7 @@ async function main() {
     return renderEmpty('Could not read report data.');
   }
   const dataset = stored[key] as ChannelDataset | undefined;
-  if (!dataset) return renderEmpty('No data for this channel — open the channel on YouTube and click Analyse again.');
+  if (!dataset) return renderEmpty('No data for this channel. Open the channel on YouTube and click Analyse again.');
   render(dataset);
 }
 
