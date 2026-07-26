@@ -6,7 +6,7 @@
   "author": "konnen916",
   "homepage_url": "https://github.com/konnen916/tubescope",
   "icons": { "48": "icon.svg", "96": "icon.svg", "128": "icon.svg" },
-  "browser_specific_settings": { "gecko": { "id": "tubescope@konnen916" } },
+  "browser_specific_settings": { "gecko": { "id": "tubescope@konnen916", "data_collection_permissions": { "required": ["none"] } } },
   "permissions": ["storage"],
   "host_permissions": ["*://*.googleapis.com/*"],
   "background": { "scripts": ["background.js"] },
