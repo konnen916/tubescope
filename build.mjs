@@ -22,6 +22,7 @@ function copyStatic() {
   cpSync('src/manifest.json', 'dist/manifest.json');
   cpSync('src/options/options.html', 'dist/options.html');
   cpSync('src/report/report.html', 'dist/report.html');
+  cpSync('src/icon.svg', 'dist/icon.svg');
 }
 
 if (watch) {

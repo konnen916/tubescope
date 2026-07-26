@@ -2,8 +2,11 @@
   "manifest_version": 3,
   "name": "TubeScope",
   "version": "0.1.0",
-  "description": "Free, open-source YouTube channel analytics exporter.",
-  "browser_specific_settings": { "gecko": { "id": "tubescope@local" } },
+  "description": "Free, open-source YouTube channel analytics and report tool. Export any channel's stats and open a detailed analyser report.",
+  "author": "konnen916",
+  "homepage_url": "https://github.com/konnen916/tubescope",
+  "icons": { "48": "icon.svg", "96": "icon.svg", "128": "icon.svg" },
+  "browser_specific_settings": { "gecko": { "id": "tubescope@konnen916" } },
   "permissions": ["storage"],
   "host_permissions": ["*://*.googleapis.com/*"],
   "background": { "scripts": ["background.js"] },
@@ -11,5 +14,5 @@
     { "matches": ["*://*.youtube.com/*"], "js": ["content.js"], "run_at": "document_idle" }
   ],
   "options_ui": { "page": "options.html", "open_in_tab": true },
-  "action": { "default_title": "TubeScope" }
+  "action": { "default_title": "TubeScope", "default_icon": "icon.svg" }
 }
