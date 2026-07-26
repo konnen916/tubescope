@@ -106,9 +106,9 @@ function render(d: ChannelDataset) {
       ${card('consistency (CV)', cv.toFixed(2))}
     </div></section>
 
-    <section><h2>Upload timeline</h2>${uploadTimelineSvg(d.videos)}</section>
-    <section><h2>Views distribution</h2>${viewsHistogramSvg(buckets)}</section>
-    <section><h2>Outliers (views ÷ median)</h2>${outlierBarsSvg(d.videos)}</section>
+    <section><h2>Upload timeline</h2><div class="muted">Each dot is one video. Left to right is oldest to newest upload. Higher is more views.</div>${uploadTimelineSvg(d.videos)}</section>
+    <section><h2>Views distribution</h2><div class="muted">How many videos fall into each view range.</div>${viewsHistogramSvg(buckets)}</section>
+    <section><h2>Outliers (views ÷ median)</h2><div class="muted">The channel's biggest overperformers. Bars above the 2× line beat the channel's median views.</div>${outlierBarsSvg(d.videos)}</section>
 
     <section><h2>What's working</h2>
       <div class="muted">Long-form (≥60s): ${num(split.long.count)} videos, median ${num(split.long.medianViews)} views · Shorts (&lt;60s): ${num(split.shorts.count)} videos, median ${num(split.shorts.medianViews)} views</div>
@@ -117,7 +117,7 @@ function render(d: ChannelDataset) {
       </tbody></table>
     </section>
 
-    <section><h2>Best time to post (UTC)</h2>${heatmapSvg(bestTimeHeatmap(d.videos))}</section>
+    <section><h2>Best time to post (UTC)</h2><div class="muted">Darker cells are day/hour slots whose uploads averaged more views (UTC).</div>${heatmapSvg(bestTimeHeatmap(d.videos))}</section>
 
     <section><h2>Top tags</h2><div class="badges">${tags.length ? tags.map((t) => `<span class="badge">${esc(t.tag)} <b>${t.count}</b></span>`).join('') : '<span class="muted">No tags found.</span>'}</div></section>
 

@@ -59,3 +59,36 @@ it('heatmapSvg renders day labels', () => {
   expect(svg).toContain('Sun');
   expect(svg).toContain('Sat');
 });
+
+it('uploadTimelineSvg shows year labels and a value label', () => {
+  const svg = uploadTimelineSvg([
+    row({ publishedAt: '2026-01-01T00:00:00Z', viewCount: 1500000 }),
+    row({ publishedAt: '2026-02-01T00:00:00Z', viewCount: 10 }),
+  ]);
+  expect(svg).toMatch(/<text/);
+  expect(svg).toContain('2026');
+  expect(svg).toContain('1.5M views');
+});
+
+it('viewsHistogramSvg prints counts and range labels and a Videos axis', () => {
+  const buckets: Bucket[] = [
+    { label: '0-10', min: 0, max: 10, count: 3 },
+    { label: '10-100', min: 10, max: 100, count: 1 },
+  ];
+  const svg = viewsHistogramSvg(buckets);
+  expect(svg).toContain('>3</text>');   // count above the bar
+  expect(svg).toContain('0-10');        // compact range under the bar
+  expect(svg).toContain('Videos');      // y-axis label
+});
+
+it('outlierBarsSvg draws a 2x reference line when the top score is >= 2', () => {
+  const svg = outlierBarsSvg([row({ outlierScore: 9 }), row({ outlierScore: 1 })], 2);
+  expect(svg).toContain('2× median'); // "2× median"
+  expect(svg).toMatch(/stroke-dasharray/);
+});
+
+it('heatmapSvg shows hour ticks', () => {
+  const grid = Array.from({ length: 7 }, () => new Array(24).fill(1));
+  const svg = heatmapSvg(grid);
+  expect(svg).toContain('12:00');
+});
