@@ -68,3 +68,32 @@ export function outlierBarsSvg(rows: VideoRow[], topN = 12): string {
     .join('');
   return frame(`<title>Outlier videos (views ÷ median)</title>${axes()}${bars}`);
 }
+
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function heatmapSvg(grid: number[][]): string {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  if (rows === 0 || cols === 0) return emptyChart('No data');
+  const labelW = 34;
+  const cellW = (W - labelW - PAD) / cols;
+  const cellH = (H - 2 * PAD) / rows;
+  let max = 0;
+  for (const r of grid) for (const v of r) if (v > max) max = v;
+  const parts: string[] = [];
+  for (let d = 0; d < rows; d++) {
+    for (let h = 0; h < cols; h++) {
+      const v = grid[d][h];
+      const op = max ? (v > 0 ? (v / max) * 0.9 + 0.1 : 0) : 0;
+      const x = labelW + h * cellW;
+      const y = PAD + d * cellH;
+      parts.push(
+        `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cellW.toFixed(1)}" height="${cellH.toFixed(1)}" fill="currentColor" opacity="${op.toFixed(3)}"><title>${esc(DAYS_SHORT[d] ?? String(d))} ${h}:00 UTC — ${Math.round(v).toLocaleString()} avg views</title></rect>`,
+      );
+    }
+    parts.push(
+      `<text x="0" y="${(PAD + d * cellH + cellH / 2 + 3).toFixed(1)}" fill="currentColor" opacity="0.7" font-size="10">${esc(DAYS_SHORT[d] ?? '')}</text>`,
+    );
+  }
+  return frame(`<title>Best time to post (avg views by day × hour, UTC)</title>${parts.join('')}`);
+}

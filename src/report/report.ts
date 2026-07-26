@@ -2,7 +2,8 @@ import type { ChannelDataset, VideoRow } from '../types';
 import { esc } from '../lib/html';
 import { toCSV, toJSON, suggestFilename } from '../lib/exporter';
 import { viewsSkew, consistencyCV, distributionBuckets, uploadsPerMonth, durationSplit } from '../lib/report-metrics';
-import { uploadTimelineSvg, viewsHistogramSvg, outlierBarsSvg } from '../lib/charts';
+import { uploadTimelineSvg, viewsHistogramSvg, outlierBarsSvg, heatmapSvg } from '../lib/charts';
+import { bestTimeHeatmap, topTags, winningTitleWords, velocityLeaders } from '../lib/report-insights';
 
 const app = () => document.getElementById('app')!;
 const num = (n: number) => Math.round(n).toLocaleString();
@@ -73,6 +74,9 @@ function render(d: ChannelDataset) {
   const split = durationSplit(d.videos);
   const buckets = distributionBuckets(d.videos);
   const outliers = [...d.videos].sort((a, b) => b.outlierScore - a.outlierScore).slice(0, 15);
+  const tags = topTags(d.videos);
+  const words = winningTitleWords(d.videos);
+  const velocity = velocityLeaders(d.videos);
 
   const card = (label: string, value: string) =>
     `<div class="card"><b>${esc(value)}</b><span class="muted">${esc(label)}</span></div>`;
@@ -110,6 +114,18 @@ function render(d: ChannelDataset) {
       <div class="muted">Long-form (≥60s): ${num(split.long.count)} videos, median ${num(split.long.medianViews)} views · Shorts (&lt;60s): ${num(split.shorts.count)} videos, median ${num(split.shorts.medianViews)} views</div>
       <table><thead><tr><th>Title</th><th>Views</th><th>Outlier×</th><th>Eng.</th><th>Published</th></tr></thead><tbody>
       ${outliers.map((v) => `<tr><td>${esc(v.title)}</td><td>${num(v.viewCount)}</td><td>${v.outlierScore.toFixed(1)}×</td><td>${pct(v.engagementRate)}</td><td>${esc(v.publishedAt.slice(0, 10))}</td></tr>`).join('')}
+      </tbody></table>
+    </section>
+
+    <section><h2>Best time to post (UTC)</h2>${heatmapSvg(bestTimeHeatmap(d.videos))}</section>
+
+    <section><h2>Top tags</h2><div class="badges">${tags.length ? tags.map((t) => `<span class="badge">${esc(t.tag)} <b>${t.count}</b></span>`).join('') : '<span class="muted">No tags found.</span>'}</div></section>
+
+    <section><h2>Winning-title words</h2><div class="badges">${words.length ? words.map((w) => `<span class="badge">${esc(w.word)} <b>${w.count}</b></span>`).join('') : '<span class="muted">Not enough titles.</span>'}</div></section>
+
+    <section><h2>View-velocity leaders (views/day)</h2>
+      <table><thead><tr><th>Title</th><th>Views/day</th><th>Views</th><th>Published</th></tr></thead><tbody>
+      ${velocity.map((v) => `<tr><td>${esc(v.title)}</td><td>${num(v.viewsPerDay)}</td><td>${num(v.viewCount)}</td><td>${esc(v.publishedAt.slice(0, 10))}</td></tr>`).join('')}
       </tbody></table>
     </section>
 

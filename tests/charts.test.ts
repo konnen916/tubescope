@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { uploadTimelineSvg, viewsHistogramSvg, outlierBarsSvg } from '../src/lib/charts';
+import { uploadTimelineSvg, viewsHistogramSvg, outlierBarsSvg, heatmapSvg } from '../src/lib/charts';
 import type { VideoRow } from '../src/types';
 import type { Bucket } from '../src/lib/report-metrics';
 
@@ -37,4 +37,25 @@ it('outlierBarsSvg respects topN and ESCAPES titles (XSS)', () => {
   expect((svg.match(/<rect/g) || []).length).toBe(2); // topN=2
   expect(svg).not.toContain('<script>alert(1)</script>');
   expect(svg).toContain('&lt;script&gt;');
+});
+
+it('heatmapSvg renders a 7x24 = 168-cell grid', () => {
+  const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+  grid[4][5] = 200;
+  const svg = heatmapSvg(grid);
+  expect(svg.startsWith('<svg')).toBe(true);
+  expect((svg.match(/<rect/g) || []).length).toBe(168);
+});
+
+it('heatmapSvg returns an empty-state svg for an empty grid', () => {
+  const svg = heatmapSvg([]);
+  expect(svg.startsWith('<svg')).toBe(true);
+  expect((svg.match(/<rect/g) || []).length).toBe(0);
+});
+
+it('heatmapSvg renders day labels', () => {
+  const grid = Array.from({ length: 7 }, () => new Array(24).fill(1));
+  const svg = heatmapSvg(grid);
+  expect(svg).toContain('Sun');
+  expect(svg).toContain('Sat');
 });
