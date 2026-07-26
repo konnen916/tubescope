@@ -81,10 +81,15 @@ it('viewsHistogramSvg prints counts and range labels and a Videos axis', () => {
   expect(svg).toContain('Videos');      // y-axis label
 });
 
-it('outlierBarsSvg draws a 2x reference line when the top score is >= 2', () => {
-  const svg = outlierBarsSvg([row({ outlierScore: 9 }), row({ outlierScore: 1 })], 2);
-  expect(svg).toContain('2× median'); // "2× median"
-  expect(svg).toMatch(/stroke-dasharray/);
+it('outlierBarsSvg labels each bar with its multiple', () => {
+  const svg = outlierBarsSvg([row({ outlierScore: 9 }), row({ outlierScore: 3 })], 2);
+  expect(svg).toContain('9.0×');
+  expect(svg).toContain('3.0×');
+});
+
+it('uploadTimelineSvg gives each dot a tooltip with title and views', () => {
+  const svg = uploadTimelineSvg([row({ title: 'My Vid', viewCount: 1200 })]);
+  expect(svg).toContain('<title>My Vid: 1.2K views');
 });
 
 it('heatmapSvg shows hour ticks', () => {

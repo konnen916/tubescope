@@ -36,7 +36,7 @@ function txt(x: number, y: number, s: string, extra = ''): string {
 export function uploadTimelineSvg(rows: VideoRow[]): string {
   if (rows.length === 0) return emptyChart('No videos');
   const pts = rows
-    .map((r) => ({ t: new Date(r.publishedAt).getTime(), v: r.viewCount }))
+    .map((r) => ({ t: new Date(r.publishedAt).getTime(), v: r.viewCount, title: r.title, date: r.publishedAt.slice(0, 10) }))
     .sort((a, b) => a.t - b.t);
   const tMin = pts[0].t;
   const tMax = pts[pts.length - 1].t;
@@ -44,7 +44,7 @@ export function uploadTimelineSvg(rows: VideoRow[]): string {
   const x = (t: number) => PAD + ((t - tMin) / (tMax - tMin || 1)) * (W - 2 * PAD);
   const y = (v: number) => H - PAD - (v / vMax) * (H - 2 * PAD);
   const circles = pts
-    .map((p) => `<circle cx="${x(p.t).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="3" fill="currentColor" opacity="0.7"/>`)
+    .map((p) => `<circle cx="${x(p.t).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="4" fill="currentColor" opacity="0.7"><title>${esc(p.title)}: ${fmtCompact(p.v)} views, ${esc(p.date)}</title></circle>`)
     .join('');
   const yr = (t: number) => new Date(t).getUTCFullYear();
   const labels =
@@ -81,23 +81,19 @@ export function outlierBarsSvg(rows: VideoRow[], topN = 12): string {
   const maxScore = Math.max(...top.map((r) => r.outlierScore), 1);
   const chartH = H - 2 * PAD;
   const bw = (W - 2 * PAD) / top.length;
-  const bars = top
+  const parts = top
     .map((r, i) => {
       const bh = (r.outlierScore / maxScore) * chartH;
       const bx = PAD + i * bw;
       const by = H - PAD - bh;
+      const cx = bx + bw / 2;
       const fill = r.outlierScore >= 2 ? '#e00' : 'currentColor';
-      return `<rect x="${(bx + 2).toFixed(1)}" y="${by.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="0.8"><title>${esc(r.title)}: ${r.outlierScore.toFixed(1)}×</title></rect>`;
+      const bar = `<rect x="${(bx + 2).toFixed(1)}" y="${by.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="0.8"><title>${esc(r.title)}: ${r.outlierScore.toFixed(1)}×</title></rect>`;
+      const label = `<text x="${cx.toFixed(1)}" y="${(by - 4).toFixed(1)}" fill="currentColor" opacity="0.85" font-size="9" text-anchor="middle">${r.outlierScore.toFixed(1)}×</text>`;
+      return bar + label;
     })
     .join('');
-  let ref = '';
-  if (maxScore >= 2) {
-    const yy = H - PAD - (2 / maxScore) * chartH;
-    ref =
-      `<line x1="${PAD}" y1="${yy.toFixed(1)}" x2="${W - PAD}" y2="${yy.toFixed(1)}" stroke="#e00" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>` +
-      `<text x="${(W - PAD - 2).toFixed(1)}" y="${(yy - 3).toFixed(1)}" fill="#e00" opacity="0.9" font-size="10" text-anchor="end">2× median</text>`;
-  }
-  return frame(`<title>Outlier videos (views ÷ median)</title>${axes()}${ref}${bars}`);
+  return frame(`<title>Outlier videos (views ÷ median)</title>${axes()}${parts}`);
 }
 
 const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

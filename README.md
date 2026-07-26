@@ -1,8 +1,16 @@
+<div align="center">
+
+<img src="src/icon.svg" width="88" height="88" alt="TubeScope logo">
+
 # TubeScope
 
-**Free, open-source YouTube channel analytics for Firefox.** The research and export tools that other extensions lock behind a subscription, running entirely in your own browser, with your own API key. No account. No paywall. No server watching what you look up.
+**Free, open-source YouTube channel analytics for Firefox.**
+
+The research and export tools that other extensions lock behind a subscription, running entirely in your own browser, with your own API key. No account. No paywall. No server watching what you look up.
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue) ![Firefox](https://img.shields.io/badge/Firefox-MV3-orange) ![No backend](https://img.shields.io/badge/backend-none-green)
+
+</div>
 
 ---
 

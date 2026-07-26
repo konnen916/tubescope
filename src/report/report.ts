@@ -108,7 +108,7 @@ function render(d: ChannelDataset) {
 
     <section><h2>Upload timeline</h2><div class="muted">Each dot is one video. Left to right is oldest to newest upload. Higher is more views.</div>${uploadTimelineSvg(d.videos)}</section>
     <section><h2>Views distribution</h2><div class="muted">How many videos fall into each view range.</div>${viewsHistogramSvg(buckets)}</section>
-    <section><h2>Outliers (views ÷ median)</h2><div class="muted">The channel's biggest overperformers. Bars above the 2× line beat the channel's median views.</div>${outlierBarsSvg(d.videos)}</section>
+    <section><h2>Outliers (views ÷ median)</h2><div class="muted">The channel's biggest overperformers. The number on each bar is how many times the channel's median views it pulled (red means 2× or more).</div>${outlierBarsSvg(d.videos)}</section>
 
     <section><h2>What's working</h2>
       <div class="muted">Long-form (≥60s): ${num(split.long.count)} videos, median ${num(split.long.medianViews)} views · Shorts (&lt;60s): ${num(split.shorts.count)} videos, median ${num(split.shorts.medianViews)} views</div>
