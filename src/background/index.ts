@@ -1,5 +1,5 @@
 import { collectChannelDataset } from '../lib/collect';
-import { makeFetchJson } from '../lib/youtube-api';
+import { makeFetchJson, fetchVideosByIds } from '../lib/youtube-api';
 import { stripThumbnails } from '../lib/report-metrics';
 import type { ChannelDataset } from '../types';
 
@@ -19,6 +19,18 @@ async function cacheForReport(channelId: string, dataset: ChannelDataset): Promi
   }
 }
 
+async function handleVideo(videoId: string): Promise<any> {
+  try {
+    const stored = await browser.storage.local.get(KEY_STORAGE);
+    const apiKey = stored[KEY_STORAGE] as string | undefined;
+    if (!apiKey) return { event: 'nokey' };
+    const [video] = await fetchVideosByIds(makeFetchJson(), apiKey, [videoId]);
+    return video ? { event: 'result', video } : { event: 'error', message: 'Video not found' };
+  } catch (e: any) {
+    return { event: 'error', message: e?.message ?? 'Unknown error' };
+  }
+}
+
 browser.action.onClicked.addListener(() => {
   browser.runtime.openOptionsPage();
 });
@@ -26,6 +38,10 @@ browser.action.onClicked.addListener(() => {
 browser.runtime.onMessage.addListener((msg: any) => {
   if (msg?.cmd === 'report' && typeof msg.channelId === 'string') {
     browser.tabs.create({ url: browser.runtime.getURL('report.html#' + msg.channelId) });
+    return;
+  }
+  if (msg?.cmd === 'video' && typeof msg.videoId === 'string') {
+    return handleVideo(msg.videoId);
   }
 });
 

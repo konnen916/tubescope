@@ -7,6 +7,11 @@
   button { margin-top: 10px; padding: 8px 14px; cursor: pointer; }
   #status { margin-top: 10px; min-height: 1.2em; }
   ol { line-height: 1.6; }
+  h2 { font-size: 16px; margin-top: 28px; }
+  .wl-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #8884; }
+  .wl-item a { text-decoration: none; }
+  .wl-remove { margin: 0; padding: 4px 8px; }
+  .muted { opacity: .7; }
 </style>
 <h1>TubeScope</h1>
 <p>Paste your <b>YouTube Data API v3</b> key. It stays on this device (browser storage) and is only sent to Google's API.</p>
@@ -22,4 +27,6 @@
     <li>Paste it here. Free quota: 10,000 units/day.</li>
   </ol>
 </details>
+<h2>Watchlist</h2>
+<div id="watchlist" class="muted"></div>
 <script src="options.js"></script>
