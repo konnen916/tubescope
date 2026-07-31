@@ -48,6 +48,15 @@ export interface ChannelSummary {
   bottomPerformers: VideoRow[];
 }
 
+export interface RawComment {
+  commentId: string;
+  author: string;
+  text: string;
+  likeCount: number;
+  replyCount: number;
+  publishedAt: string;
+}
+
 export interface ChannelDataset {
   channel: ChannelMeta;
   summary: ChannelSummary;

@@ -1,4 +1,4 @@
-import type { ChannelDataset, VideoRow } from '../types';
+import type { ChannelDataset, RawComment, VideoRow } from '../types';
 
 function csvCell(v: unknown): string {
   let s = v == null ? '' : String(v);
@@ -35,6 +35,31 @@ export function toCSV(dataset: ChannelDataset): string {
 
 export function toJSON(dataset: ChannelDataset): string {
   return JSON.stringify(dataset, null, 2);
+}
+
+const COMMENT_COLUMNS: { header: string; get: (c: RawComment) => unknown }[] = [
+  { header: 'commentId', get: (c) => c.commentId },
+  { header: 'author', get: (c) => c.author },
+  { header: 'text', get: (c) => c.text },
+  { header: 'likes', get: (c) => c.likeCount },
+  { header: 'replies', get: (c) => c.replyCount },
+  { header: 'publishedAt', get: (c) => c.publishedAt },
+];
+
+export function commentsToCSV(comments: RawComment[]): string {
+  const head = COMMENT_COLUMNS.map((c) => c.header).join(',');
+  const rows = comments.map((c) => COMMENT_COLUMNS.map((col) => csvCell(col.get(c))).join(','));
+  return [head, ...rows].join('\r\n');
+}
+
+export function commentsToJSON(videoId: string, comments: RawComment[]): string {
+  return JSON.stringify({ videoId, generatedAt: new Date().toISOString(), comments }, null, 2);
+}
+
+export function commentsFilename(videoId: string, ext: 'csv' | 'json'): string {
+  const slug = videoId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 20) || 'video';
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  return `tubescope-comments-${slug}-${date}.${ext}`;
 }
 
 export function suggestFilename(dataset: ChannelDataset, ext: 'csv' | 'json'): string {

@@ -1,5 +1,6 @@
 import { collectChannelDataset } from '../lib/collect';
 import { makeFetchJson, fetchVideosByIds } from '../lib/youtube-api';
+import { fetchVideoComments } from '../lib/comments';
 import { stripThumbnails } from '../lib/report-metrics';
 import type { ChannelDataset } from '../types';
 
@@ -31,6 +32,22 @@ async function handleVideo(videoId: string): Promise<any> {
   }
 }
 
+async function handleComments(videoId: string): Promise<any> {
+  try {
+    const stored = await browser.storage.local.get(KEY_STORAGE);
+    const apiKey = stored[KEY_STORAGE] as string | undefined;
+    if (!apiKey) return { event: 'nokey' };
+    const comments = await fetchVideoComments(makeFetchJson(), apiKey, videoId);
+    return { event: 'result', comments };
+  } catch (e: any) {
+    const msg = e?.message ?? 'Unknown error';
+    if (/disabled comments|commentsDisabled/i.test(msg)) {
+      return { event: 'error', message: 'Comments are disabled on this video.' };
+    }
+    return { event: 'error', message: msg };
+  }
+}
+
 browser.action.onClicked.addListener(() => {
   browser.runtime.openOptionsPage();
 });
@@ -42,6 +59,9 @@ browser.runtime.onMessage.addListener((msg: any) => {
   }
   if (msg?.cmd === 'video' && typeof msg.videoId === 'string') {
     return handleVideo(msg.videoId);
+  }
+  if (msg?.cmd === 'comments' && typeof msg.videoId === 'string') {
+    return handleComments(msg.videoId);
   }
 });
 

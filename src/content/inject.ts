@@ -1,5 +1,6 @@
 import { extractChannelIdFromHtml } from '../lib/channel-id';
-import { toCSV, toJSON, suggestFilename } from '../lib/exporter';
+import { toCSV, toJSON, suggestFilename, commentsToCSV, commentsToJSON, commentsFilename } from '../lib/exporter';
+import { summarizeComments } from '../lib/comments';
 import { esc } from '../lib/html';
 import { quickStats } from '../lib/quick-stats';
 import { addToWatchlist, removeFromWatchlist, isWatched, type WatchEntry } from '../lib/watchlist';
@@ -182,6 +183,7 @@ function render(inner: string) {
   sr.innerHTML = `<style>
     .box{position:fixed;bottom:64px;right:16px;width:330px;max-height:70vh;overflow:auto;background:rgba(18,18,18,0.97);color:#f1f1f1;border:1px solid rgba(255,255,255,0.16);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,0.55);padding:16px 16px 18px;font:13px/1.5 'Roboto','Segoe UI',system-ui,sans-serif;z-index:99999;backdrop-filter:blur(6px)}
     .box b{font-weight:600}
+    .box .muted{opacity:.65}
     .box button{cursor:pointer;margin:12px 6px 0 0;padding:7px 12px;border:1px solid rgba(255,255,255,0.16);border-radius:16px;background:rgba(45,45,45,0.9);color:#f1f1f1;font:500 12px 'Roboto',system-ui,sans-serif}
     .box button:hover{background:rgba(70,70,70,0.95)}
     .box #report{border-color:rgba(255,0,51,0.5)}
@@ -230,7 +232,45 @@ async function loadVideoStats() {
     <b>${esc(v.title)}</b><br>
     ${v.viewCount.toLocaleString()} views · ${v.likeCount.toLocaleString()} likes · ${v.commentCount.toLocaleString()} comments<br>
     ${Math.round(q.viewsPerDay).toLocaleString()} views/day · ${(q.engagementRate * 100).toFixed(2)}% engagement<br>
-    ${(q.likeRatio * 100).toFixed(2)}% like ratio · ${Math.round(q.ageDays)} days old · ${v.durationSeconds}s · ${v.tags.length} tags`);
+    ${(q.likeRatio * 100).toFixed(2)}% like ratio · ${Math.round(q.ageDays)} days old · ${v.durationSeconds}s · ${v.tags.length} tags
+    <button id="comments">Export comments</button>`);
+  shadow().querySelector('#comments')?.addEventListener('click', () => void loadComments(videoId));
+}
+
+async function loadComments(videoId: string) {
+  render('<button class="close">✕</button>Fetching comments, this can take a moment on busy videos');
+  let res: any;
+  try {
+    res = await browser.runtime.sendMessage({ cmd: 'comments', videoId });
+  } catch (e: any) {
+    render(`<button class="close">✕</button>Error: ${esc(e?.message ?? 'could not load comments')}`);
+    return;
+  }
+  if (res?.event === 'nokey') {
+    render('<button class="close">✕</button>No API key set. Open the TubeScope options (toolbar icon) and add your YouTube Data API key.');
+    return;
+  }
+  if (res?.event !== 'result') {
+    render(`<button class="close">✕</button>Error: ${esc(res?.message ?? 'could not load comments')}`);
+    return;
+  }
+  const comments = res.comments as import('../types').RawComment[];
+  const s = summarizeComments(comments);
+  if (s.count === 0) {
+    render('<button class="close">✕</button>No comments found on this video.');
+    return;
+  }
+  render(`<button class="close">✕</button>
+    <b>${s.count.toLocaleString()} comments fetched</b><br>
+    ${s.totalLikes.toLocaleString()} likes · ${s.totalReplies.toLocaleString()} replies · median ${s.medianLikes.toLocaleString()} likes<br>
+    <span class="muted">Top comment (${(s.topLiked?.likeCount ?? 0).toLocaleString()} likes) by ${esc(s.topLiked?.author ?? '')}:</span><br>
+    ${esc((s.topLiked?.text ?? '').slice(0, 220))}
+    <button id="ccsv">Export CSV</button><button id="cjson">Export JSON</button>`);
+  const sr = shadow();
+  sr.querySelector('#ccsv')?.addEventListener('click', () =>
+    download(commentsToCSV(comments), commentsFilename(videoId, 'csv'), 'text/csv'));
+  sr.querySelector('#cjson')?.addEventListener('click', () =>
+    download(commentsToJSON(videoId, comments), commentsFilename(videoId, 'json'), 'application/json'));
 }
 
 function renderResult() {
