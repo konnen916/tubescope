@@ -34,9 +34,13 @@ Analysing a YouTube channel is just math on public data: views, likes, comments,
 
 It works on **any public channel**: yours, a competitor's, or one you are researching.
 
-## Install (from source)
+## Install
 
-TubeScope is early. For now you load it as a temporary add-on:
+[**Get TubeScope for Firefox**](https://addons.mozilla.org/en-US/firefox/addon/tubescope/) on addons.mozilla.org. One click, reviewed by Mozilla, updates itself.
+
+## Build from source
+
+If you would rather build it yourself, or you want to work on it:
 
 ```bash
 git clone https://github.com/konnen916/tubescope
@@ -50,8 +54,6 @@ Then in Firefox:
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on** and pick `dist/manifest.json`
 3. That's it. It stays until you close Firefox, then load it again the same way.
-
-> A one-click install on **addons.mozilla.org** is planned so you will not need any of the above.
 
 ## Get a free API key
 
@@ -89,9 +91,7 @@ It sticks to what public data can honestly tell you.
 
 ## Roadmap
 
-- One-click install via addons.mozilla.org
-- On-page stat overlays while you browse
-- Competitor watchlists and trending explorer
+- Trending explorer
 - Approximate keyword suggestions (clearly labeled as estimates)
 
 ## Contributing
